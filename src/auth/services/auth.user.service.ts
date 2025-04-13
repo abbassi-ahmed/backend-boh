@@ -72,7 +72,7 @@ export class AuthUserService {
       where: { email: payload.email },
     });
 
-    if (user?.firstname && user?.lastname && user?.password) {
+    if (user?.name && user?.password) {
       return {
         status: 200,
         user: user,

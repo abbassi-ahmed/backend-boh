@@ -4,11 +4,7 @@ import { IsNotEmpty, IsString } from 'class-validator';
 export class CreateUserDto {
   @ApiProperty()
   @IsString()
-  firstname: string;
-
-  @ApiProperty()
-  @IsString()
-  lastname: string;
+  name: string;
 
   @ApiProperty()
   @IsString()
@@ -19,11 +15,4 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   password: string;
-
-  @ApiProperty()
-  @IsString()
-  phone: string;
-
-  @ApiProperty()
-  sex: 'male' | 'female';
 }

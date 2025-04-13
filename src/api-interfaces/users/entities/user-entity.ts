@@ -9,14 +9,7 @@ export class User extends GenericEntity {
     type: 'varchar',
     nullable: true,
   })
-  firstname: string;
-
-  @ApiProperty()
-  @Column({
-    type: 'varchar',
-    nullable: true,
-  })
-  lastname: string;
+  name: string;
 
   @ApiProperty()
   @Column({
@@ -30,17 +23,4 @@ export class User extends GenericEntity {
     type: 'varchar',
   })
   password: string;
-
-  @ApiProperty()
-  @Column({
-    type: 'varchar',
-  })
-  sex: 'male' | 'female';
-
-  @ApiProperty()
-  @Column({
-    type: 'varchar',
-    nullable: true,
-  })
-  phone: string;
 }
