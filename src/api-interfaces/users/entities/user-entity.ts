@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { GenericEntity } from '../../generic.entity';
 import { Column, Entity, ManyToOne } from 'typeorm';
-import { Coach } from '@/api-interfaces';
 
 @Entity()
 export class User extends GenericEntity {
@@ -44,7 +43,4 @@ export class User extends GenericEntity {
     nullable: true,
   })
   phone: string;
-
-  @ManyToOne(() => Coach, (r) => r.clients)
-  coach: Coach;
 }
