@@ -8,6 +8,7 @@ import { AllExceptionsFilter } from './utils/exceptions/exception.filter';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AssemblyModule } from './assemblyai/assemblyai.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     }),
     AuthModule,
     UsersModule,
+    AssemblyModule,
   ],
   controllers: [AppController],
   providers: [
