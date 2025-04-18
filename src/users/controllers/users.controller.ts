@@ -1,4 +1,12 @@
-import { CreateUserDto, UpdateUserDto, User } from '@/api-interfaces';
+import {
+  CreateUserDto,
+  FacebookProfile,
+  InstagramProfile,
+  TiktokProfile,
+  UpdateUserDto,
+  User,
+  YoutubeProfile,
+} from '@/api-interfaces';
 import { GenericController } from '@/utils/generics/crud.controller';
 import {
   Body,
@@ -13,6 +21,7 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { UsersService } from '../services/users.service';
 import { IPaginationQueryParams } from '@/types';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('users')
 @ApiTags('users')
@@ -43,5 +52,49 @@ export class UsersController extends GenericController<
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOneById(+id);
+  }
+  @Post(':id/facebook')
+  async assignFacebook(
+    @Param('id') id: string,
+    @Body() dto: Partial<FacebookProfile>,
+  ) {
+    return await this.usersService.assignFacebookProfile(+id, dto);
+  }
+  @Patch(':id/facebook/unassign')
+  unassignFacebook(@Param('id') id: string) {
+    return this.usersService.unassignFacebookProfile(+id);
+  }
+
+  @Post(':id/instagram')
+  assignInstagram(
+    @Param('id') id: string,
+    @Body() dto: Partial<InstagramProfile>,
+  ) {
+    return this.usersService.assignInstagramProfile(+id, dto);
+  }
+
+  @Patch(':id/instagram/unassign')
+  unassignInstagram(@Param('id') id: string) {
+    return this.usersService.unassignInstagramProfile(+id);
+  }
+
+  @Post(':id/youtube')
+  assignYoutube(@Param('id') id: string, @Body() dto: Partial<YoutubeProfile>) {
+    return this.usersService.assignYoutubeProfile(+id, dto);
+  }
+
+  @Patch(':id/youtube/unassign')
+  unassignYoutube(@Param('id') id: string) {
+    return this.usersService.unassignYoutubeProfile(+id);
+  }
+
+  @Post(':id/tiktok')
+  assignTiktok(@Param('id') id: string, @Body() dto: Partial<TiktokProfile>) {
+    return this.usersService.assignTiktokProfile(+id, dto);
+  }
+
+  @Patch(':id/tiktok/unassign')
+  unassignTiktok(@Param('id') id: string) {
+    return this.usersService.unassignTiktokProfile(+id);
   }
 }

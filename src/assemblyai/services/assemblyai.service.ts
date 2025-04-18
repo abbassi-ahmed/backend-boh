@@ -1,4 +1,3 @@
-// src/assembly/assembly.service.ts
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AssemblyAI } from 'assemblyai';
@@ -19,7 +18,6 @@ export class AssemblyService {
   }
   async processAudio(fileUrl: string): Promise<any> {
     try {
-      // Step 1: Transcribe the audio and detect language
       const transcript = await this.client.transcripts.transcribe({
         audio_url: fileUrl,
         auto_chapters: true,
@@ -27,13 +25,11 @@ export class AssemblyService {
         language_detection: true,
       });
 
-      // Step 2: Generate metadata including optimal posting times
       const metadata = await this.generateMultiPlatformMetadata(
         transcript.text,
         transcript.language_code,
       );
 
-      // Step 3: Format the output with posting times
       return this.structurePlatformContent(transcript.text, metadata);
     } catch (error) {
       throw new Error(`Audio processing failed: ${error.message}`);
@@ -130,7 +126,7 @@ export class AssemblyService {
         'https://api.cohere.ai/generate',
         {
           prompt,
-          max_tokens: 1200, // Increased for additional time recommendations
+          max_tokens: 1200,
           temperature: 0.7,
         },
         {

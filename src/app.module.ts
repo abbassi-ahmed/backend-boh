@@ -9,6 +9,12 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AssemblyModule } from './assemblyai/assemblyai.module';
+import {
+  FacebookProfile,
+  InstagramProfile,
+  TiktokProfile,
+  YoutubeProfile,
+} from './api-interfaces';
 
 @Module({
   imports: [
@@ -23,6 +29,12 @@ import { AssemblyModule } from './assemblyai/assemblyai.module';
       autoLoadEntities: true,
       synchronize: true,
       ssl: process.env.DATABASE_ENABLE_SSL === 'true' ? true : false,
+      entities: [
+        FacebookProfile,
+        InstagramProfile,
+        YoutubeProfile,
+        TiktokProfile,
+      ],
     }),
     AuthModule,
     UsersModule,
