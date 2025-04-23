@@ -5,23 +5,20 @@ import { User } from './user-entity';
 @Entity()
 export class YoutubeProfile extends GenericEntity {
   @Column()
-  username: string;
+  name: string;
 
   @Column()
-  subscribers: number;
+  email: string;
 
   @Column()
-  videos: number;
+  profilePicUrl: string;
 
   @Column()
-  views: number;
+  youtubeId: string;
 
-  @Column()
-  verified: boolean;
-
-  @Column()
-  profilePic: string;
-
-  @OneToOne(() => User, (user) => user.youtubeProfile)
+  @OneToOne(() => User, (user) => user.youtubeProfile, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
   user: User;
 }

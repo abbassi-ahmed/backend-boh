@@ -172,14 +172,26 @@ export class UsersService extends CrudService<User> {
     profileDto: Partial<YoutubeProfile>,
   ) {
     const user = await this.findOneById(userId);
-    const ytProfile = this.youtubeRepo.create(profileDto);
     if (!user) {
       throw new Error(`User with ID ${userId} not found`);
     }
+
+    if (user.youtubeProfile) {
+      if (user.youtubeProfile?.id !== undefined) {
+        await this.youtubeRepo.update(user.youtubeProfile.id, profileDto);
+      } else {
+        throw new Error('Youtube profile ID is undefined');
+      }
+      return this.findOneById(userId);
+    }
+
+    const ytProfile = this.youtubeRepo.create(profileDto);
     ytProfile.user = user;
     await this.youtubeRepo.save(ytProfile);
-    user.youtubeProfile = ytProfile;
-    return this.userRepository.save(user);
+
+    await this.userRepository.update(userId, { youtubeProfile: ytProfile });
+
+    return this.findOneById(userId);
   }
 
   async unassignYoutubeProfile(userId: number) {
