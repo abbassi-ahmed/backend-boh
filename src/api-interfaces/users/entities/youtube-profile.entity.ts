@@ -16,6 +16,30 @@ export class YoutubeProfile extends GenericEntity {
   @Column()
   youtubeId: string;
 
+  @Column({ nullable: true })
+  channelId?: string;
+
+  @Column({ type: 'json', nullable: true })
+  channelStats?: {
+    viewCount: string;
+    subscriberCount: string;
+    videoCount: string;
+    hiddenSubscriberCount: boolean;
+  };
+
+  @Column({ type: 'json', nullable: true })
+  analytics?: {
+    totalViews: number;
+    totalWatchTime: number;
+    totalSubscribers: number;
+    recentStats: Array<{
+      date: string;
+      views: number;
+      watchTime: number;
+      subscribers: number;
+    }>;
+  };
+
   @OneToOne(() => User, (user) => user.youtubeProfile, {
     onDelete: 'SET NULL',
     nullable: true,
