@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   FacebookProfile,
   InstagramProfile,
-  TiktokProfile,
+  TwitterProfile,
   User,
   YoutubeProfile,
 } from '@/api-interfaces';
@@ -15,7 +15,7 @@ import {
     TypeOrmModule.forFeature([
       User,
       YoutubeProfile,
-      TiktokProfile,
+      TwitterProfile,
       FacebookProfile,
       InstagramProfile,
     ]),

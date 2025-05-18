@@ -4,7 +4,7 @@ import { Column, Entity, OneToOne, JoinColumn } from 'typeorm';
 import { FacebookProfile } from './facebook-profile.entity';
 import { InstagramProfile } from './instagram-profile.entity';
 import { YoutubeProfile } from './youtube-profile.entity';
-import { TiktokProfile } from './tiktok-profile.entity';
+import { TwitterProfile } from './twitter-profile.entity';
 import { Type } from 'class-transformer';
 
 @Entity()
@@ -47,11 +47,11 @@ export class User extends GenericEntity {
   @JoinColumn()
   youtubeProfile: YoutubeProfile | null;
 
-  @OneToOne(() => TiktokProfile, (tk) => tk.user, {
+  @OneToOne(() => TwitterProfile, (tk) => tk.user, {
     cascade: true,
     nullable: true,
     onDelete: 'SET NULL',
   })
   @JoinColumn()
-  tiktokProfile: TiktokProfile | null;
+  twitterProfile: TwitterProfile | null;
 }

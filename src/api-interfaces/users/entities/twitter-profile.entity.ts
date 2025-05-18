@@ -3,7 +3,7 @@ import { GenericEntity } from '../../generic.entity';
 import { User } from './user-entity';
 
 @Entity()
-export class TiktokProfile extends GenericEntity {
+export class TwitterProfile extends GenericEntity {
   @Column()
   username: string;
 
@@ -22,6 +22,6 @@ export class TiktokProfile extends GenericEntity {
   @Column()
   profilePic: string;
 
-  @OneToOne(() => User, (user) => user.tiktokProfile)
+  @OneToOne(() => User, (user) => user.twitterProfile)
   user: User;
 }

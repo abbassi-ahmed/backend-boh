@@ -2,7 +2,7 @@ import {
   CreateUserDto,
   FacebookProfile,
   InstagramProfile,
-  TiktokProfile,
+  TwitterProfile,
   UpdateUserDto,
   User,
   YoutubeProfile,
@@ -88,13 +88,13 @@ export class UsersController extends GenericController<
     return this.usersService.unassignYoutubeProfile(+id);
   }
 
-  @Post(':id/tiktok')
-  assignTiktok(@Param('id') id: string, @Body() dto: Partial<TiktokProfile>) {
-    return this.usersService.assignTiktokProfile(+id, dto);
+  @Post(':id/twitter')
+  assignTwitter(@Param('id') id: string, @Body() dto: Partial<TwitterProfile>) {
+    return this.usersService.assignTwitterProfile(+id, dto);
   }
 
-  @Patch(':id/tiktok/unassign')
-  unassignTiktok(@Param('id') id: string) {
-    return this.usersService.unassignTiktokProfile(+id);
+  @Patch(':id/twitter/unassign')
+  unassignTwitter(@Param('id') id: string) {
+    return this.usersService.unassignTwitterProfile(+id);
   }
 }

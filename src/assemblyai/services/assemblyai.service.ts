@@ -60,7 +60,7 @@ export class AssemblyService {
       const languageName = languageMap[languageCode] || 'English';
 
       const prompt = `
-      Generate optimized content for YouTube, Facebook, Instagram, and TikTok based on this ${languageName} transcript:
+      Generate optimized content for YouTube, Facebook, Instagram, and Twitter based on this ${languageName} transcript:
       "${transcript.substring(0, 4000)}"
       
       IMPORTANT: 
@@ -109,8 +109,8 @@ export class AssemblyService {
             "notes": "Platform-specific advice in ${languageName}"
           }
         },
-        "tiktok": {
-          "title": "TikTok title under 50 chars with hashtags in ${languageName}",
+        "twitter": {
+          "title": "Twitter title under 50 chars with hashtags in ${languageName}",
           "description": "Very short description with hashtags (under 100 chars) in ${languageName}",
           "tags": ["tag1", "tag2", "trending"],
           "posting_time": {
@@ -198,23 +198,24 @@ export class AssemblyService {
           notes: 'Instagram Reels perform best in early mornings or evenings',
         },
       },
-      tiktok: {
+      twitter: {
         title:
-          metadata.tiktok?.title ||
+          metadata.twitter?.title ||
           `${fallbackContent.title.substring(0, 40)} #fyp`,
         description:
-          metadata.tiktok?.description ||
+          metadata.twitter?.description ||
           `${fallbackContent.description.substring(0, 80)} #viral`,
         tags: [
-          ...(metadata.tiktok?.tags || fallbackContent.tags),
+          ...(metadata.twitter?.tags || fallbackContent.tags),
           'fyp',
           'viral',
         ].slice(0, 5),
-        posting_time: metadata.tiktok?.posting_time || {
+        posting_time: metadata.twitter?.posting_time || {
           best_days: ['Wednesday', 'Friday'],
           best_hours: '11:00-13:00',
           timezone: 'UTC',
-          notes: 'TikTok engagement peaks during lunch hours and late evenings',
+          notes:
+            'Twitter engagement peaks during lunch hours and late evenings',
         },
       },
       cross_platform_tips: {
@@ -264,7 +265,7 @@ export class AssemblyService {
         notes: string;
       };
     };
-    tiktok: {
+    twitter: {
       title: string;
       description: string;
       tags: string[];
@@ -287,7 +288,7 @@ export class AssemblyService {
     assembly.youtube = createAssemblyDto.youtube;
     assembly.facebook = createAssemblyDto.facebook;
     assembly.instagram = createAssemblyDto.instagram;
-    assembly.tiktok = createAssemblyDto.tiktok;
+    assembly.twitter = createAssemblyDto.twitter;
     assembly.cross_platform_tips = createAssemblyDto.cross_platform_tips;
 
     return this.assemblyRepository.save(assembly);

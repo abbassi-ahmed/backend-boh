@@ -50,7 +50,7 @@ export class Assembly extends GenericEntity {
   };
 
   @Column('jsonb')
-  tiktok: {
+  twitter: {
     title: string;
     description: string;
     tags: string[];

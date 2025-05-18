@@ -10,7 +10,7 @@ import {
 import {
   FacebookProfile,
   InstagramProfile,
-  TiktokProfile,
+  TwitterProfile,
   User,
   YoutubeProfile,
 } from '@/api-interfaces';
@@ -29,8 +29,8 @@ export class UsersService extends CrudService<User> {
     @InjectRepository(YoutubeProfile)
     private youtubeRepo: Repository<YoutubeProfile>,
 
-    @InjectRepository(TiktokProfile)
-    private tiktokRepo: Repository<TiktokProfile>,
+    @InjectRepository(TwitterProfile)
+    private twitterRepo: Repository<TwitterProfile>,
   ) {
     super(userRepository);
   }
@@ -40,7 +40,7 @@ export class UsersService extends CrudService<User> {
       facebookProfile: true,
       instagramProfile: true,
       youtubeProfile: true,
-      tiktokProfile: true,
+      twitterProfile: true,
     };
   }
   async create(dto) {
@@ -209,31 +209,31 @@ export class UsersService extends CrudService<User> {
     return user;
   }
 
-  async assignTiktokProfile(
+  async assignTwitterProfile(
     userId: number,
-    profileDto: Partial<TiktokProfile>,
+    profileDto: Partial<TwitterProfile>,
   ) {
     const user = await this.findOneById(userId);
-    const tkProfile = this.tiktokRepo.create(profileDto);
+    const tkProfile = this.twitterRepo.create(profileDto);
     if (!user) {
       throw new Error(`User with ID ${userId} not found`);
     }
     tkProfile.user = user;
-    await this.tiktokRepo.save(tkProfile);
-    user.tiktokProfile = tkProfile;
+    await this.twitterRepo.save(tkProfile);
+    user.twitterProfile = tkProfile;
     return this.userRepository.save(user);
   }
 
-  async unassignTiktokProfile(userId: number) {
+  async unassignTwitterProfile(userId: number) {
     const user = await this.findOneById(userId);
     if (!user) {
       throw new Error(`User with ID ${userId} not found`);
     }
-    if (user.tiktokProfile) {
-      if (user.tiktokProfile?.id !== undefined) {
-        await this.tiktokRepo.delete(user.tiktokProfile.id);
+    if (user.twitterProfile) {
+      if (user.twitterProfile?.id !== undefined) {
+        await this.twitterRepo.delete(user.twitterProfile.id);
       }
-      user.tiktokProfile = null;
+      user.twitterProfile = null;
       await this.userRepository.save(user);
     }
     return user;

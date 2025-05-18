@@ -7,7 +7,7 @@ export class AssemblyResponseDto {
   youtube: any;
   facebook: any;
   instagram: any;
-  tiktok: any;
+  twitter: any;
   cross_platform_tips?: any;
   createdAt: Date;
 }

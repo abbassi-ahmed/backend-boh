@@ -12,9 +12,10 @@ import { AssemblyModule } from './assemblyai/assemblyai.module';
 import {
   FacebookProfile,
   InstagramProfile,
-  TiktokProfile,
+  TwitterProfile,
   YoutubeProfile,
 } from './api-interfaces';
+import { TwitterModule } from './twitter/twitter.module';
 
 @Module({
   imports: [
@@ -33,12 +34,13 @@ import {
         FacebookProfile,
         InstagramProfile,
         YoutubeProfile,
-        TiktokProfile,
+        TwitterProfile,
       ],
     }),
     AuthModule,
     UsersModule,
     AssemblyModule,
+    TwitterModule,
   ],
   controllers: [AppController],
   providers: [
