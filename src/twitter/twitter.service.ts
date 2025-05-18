@@ -1,19 +1,24 @@
-// twitter/twitter.service.ts
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import * as OAuth from 'oauth-1.0a';
 import * as crypto from 'crypto';
+import { FormData } from 'formdata-node';
+import { Blob } from 'buffer';
 
 @Injectable()
 export class TwitterService {
-  private readonly consumerKey = 'M0pFRVR2SEVMQWZKeUNRaUJhQTA6MTpjaQ';
+  private readonly consumerKey =
+    process.env.TWITTER_CONSUMER_KEY || 'zowI2CkUx5O6VL7E2SYc13uU6';
   private readonly consumerSecret =
-    '8_0kl3rE368EZOa3ewSkHTB7XVbsJ9SBs4BdXZpvmEITwJV7nK';
+    process.env.TWITTER_CONSUMER_SECRET ||
+    'UCFaJRClYtiLc1YYuzcZq95w9i7c9SiVj2qaPvj2xx7nA0Om8T';
   private readonly accessToken =
-    '1589719224578088961-RI7uPVfCZoelDm9QL1fGOdvd9dHqHN';
+    process.env.TWITTER_ACCESS_TOKEN ||
+    '1589719224578088961-jZ2kX5wbEzQdiAPvddj6P0m4D1JxYQ';
   private readonly accessTokenSecret =
-    'iUg02wxaOgJXALEHWGloKWla4KHJuCHDdnwRqijTLMUOm';
+    process.env.TWITTER_ACCESS_TOKEN_SECRET ||
+    'MsETHImw0bC3h7WKrsftxzb2h7XqhNSXWmEa46IXeUjDl';
 
   private readonly oauth = new OAuth({
     consumer: {
@@ -26,40 +31,177 @@ export class TwitterService {
   });
 
   constructor(private readonly httpService: HttpService) {}
-  async postTweet(text: string) {
-    const endpointURL = 'https://api.twitter.com/2/tweets';
-    const data = { text };
-
+  // eslint-disable-next-line @typescript-eslint/require-await
+  private async getAuthHeader(url: string, method: string = 'POST') {
     const token = {
       key: this.accessToken,
       secret: this.accessTokenSecret,
     };
 
-    const authData = this.oauth.authorize(
-      {
-        url: endpointURL,
-        method: 'POST',
-      },
-      token,
-    );
+    const authData = this.oauth.authorize({ url, method }, token);
+    const header = this.oauth.toHeader(authData);
 
-    const authHeader = this.oauth.toHeader(authData);
+    return {
+      ...header,
+      'Content-Type': 'multipart/form-data',
+      Accept: '*/*',
+    };
+  }
 
-    // ADD THIS DEBUG LOG
-    console.log('Generated Auth Header:', authHeader);
-    console.log('Using Access Token:', this.accessToken);
-    console.log('Using Token Secret:', this.accessTokenSecret);
+  async uploadMedia(videoUrl: string) {
+    const uploadEndpoint = 'https://upload.twitter.com/1.1/media/upload.json';
 
-    const response = await firstValueFrom(
-      this.httpService.post(endpointURL, data, {
-        headers: {
-          Authorization: authHeader['Authorization'],
-          'user-agent': 'v2CreateTweetJS',
-          'content-type': 'application/json',
-        },
-      }),
-    );
+    try {
+      const videoResponse = await firstValueFrom(
+        this.httpService.get(videoUrl, {
+          responseType: 'arraybuffer',
+          maxContentLength: 512 * 1024 * 1024,
+          maxBodyLength: 512 * 1024 * 1024,
+        }),
+      );
 
-    return response.data;
+      const videoBuffer = Buffer.from(videoResponse.data);
+
+      const initFormData = new FormData();
+      initFormData.append('command', 'INIT');
+      initFormData.append('media_type', 'video/mp4');
+      initFormData.append('total_bytes', videoBuffer.length.toString());
+      initFormData.append('media_category', 'tweet_video');
+
+      const initHeaders = await this.getAuthHeader(uploadEndpoint);
+      const initResponse = await firstValueFrom(
+        this.httpService.post(uploadEndpoint, initFormData, {
+          headers: initHeaders,
+        }),
+      );
+
+      const mediaId = initResponse.data.media_id_string;
+      console.log('Media initialization successful. Media ID:', mediaId);
+
+      const chunkSize = 5 * 1024 * 1024;
+      let segmentIndex = 0;
+
+      for (let i = 0; i < videoBuffer.length; i += chunkSize) {
+        const chunk = videoBuffer.slice(i, i + chunkSize);
+        const appendFormData = new FormData();
+
+        appendFormData.append('command', 'APPEND');
+        appendFormData.append('media_id', mediaId);
+        appendFormData.append('segment_index', segmentIndex.toString());
+        appendFormData.append('media', new Blob([chunk]), 'video.mp4');
+
+        const appendHeaders = await this.getAuthHeader(uploadEndpoint);
+        await firstValueFrom(
+          this.httpService.post(uploadEndpoint, appendFormData, {
+            headers: appendHeaders,
+          }),
+        );
+
+        segmentIndex++;
+        console.log(`Uploaded chunk ${segmentIndex}`);
+      }
+
+      const finalizeFormData = new FormData();
+      finalizeFormData.append('command', 'FINALIZE');
+      finalizeFormData.append('media_id', mediaId);
+
+      const finalizeHeaders = await this.getAuthHeader(uploadEndpoint);
+      await firstValueFrom(
+        this.httpService.post(uploadEndpoint, finalizeFormData, {
+          headers: finalizeHeaders,
+        }),
+      );
+
+      let status = 'pending';
+      let attempts = 0;
+      const maxAttempts = 30;
+
+      while (status !== 'succeeded' && attempts < maxAttempts) {
+        attempts++;
+        const statusHeaders = await this.getAuthHeader(
+          `${uploadEndpoint}?command=STATUS&media_id=${mediaId}`,
+          'GET',
+        );
+
+        const statusResponse = await firstValueFrom(
+          this.httpService.get(
+            `${uploadEndpoint}?command=STATUS&media_id=${mediaId}`,
+            { headers: statusHeaders },
+          ),
+        );
+
+        status = statusResponse.data.processing_info?.state || 'pending';
+
+        if (status === 'failed') {
+          throw new Error(
+            `Video processing failed: ${JSON.stringify(statusResponse.data)}`,
+          );
+        }
+
+        if (status !== 'succeeded') {
+          const waitTime =
+            statusResponse.data.processing_info?.check_after_secs || 5;
+          console.log(
+            `Processing status: ${status}. Waiting ${waitTime} seconds...`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, waitTime * 1000));
+        }
+      }
+
+      if (status !== 'succeeded') {
+        throw new Error('Video processing timed out');
+      }
+
+      return mediaId;
+    } catch (error) {
+      console.error('Twitter Media Upload Error:', {
+        message: error.message,
+        response: error.response?.data,
+        stack: error.stack,
+      });
+      throw new Error(`Media upload failed: ${error.message}`);
+    }
+  }
+
+  async postTweet(text: string, videoUrl?: string) {
+    const endpointURL = 'https://api.twitter.com/2/tweets';
+
+    try {
+      const headers = await this.getAuthHeader(endpointURL);
+      let mediaId;
+
+      if (videoUrl) {
+        mediaId = await this.uploadMedia(videoUrl);
+      }
+
+      const tweetData: any = { text };
+      if (mediaId) {
+        tweetData.media = { media_ids: [mediaId] };
+      }
+
+      console.log(
+        'Posting tweet with data:',
+        JSON.stringify(tweetData, null, 2),
+      );
+
+      const response = await firstValueFrom(
+        this.httpService.post(endpointURL, tweetData, {
+          headers: {
+            ...headers,
+            'Content-Type': 'application/json',
+            'user-agent': 'v2CreateTweetJS',
+          },
+        }),
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error('Twitter Post Error:', {
+        message: error.message,
+        response: error.response?.data,
+        stack: error.stack,
+      });
+      throw new Error(`Tweet post failed: ${error.message}`);
+    }
   }
 }

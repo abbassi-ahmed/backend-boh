@@ -33,6 +33,7 @@
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "formdata-node": "^6.0.3",
     "oauth-1.0a": "^2.2.6",
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.2",

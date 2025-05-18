@@ -7,14 +7,20 @@ export class TwitterController {
   constructor(private readonly twitterService: TwitterService) {}
 
   @Post('post')
-  async postTweet(@Body() body: { text: string }) {
+  async postTweet(@Body() body: { text: string; videoUrl?: string }) {
     try {
-      const result = await this.twitterService.postTweet(body.text);
+      const result = await this.twitterService.postTweet(
+        body.text,
+        body.videoUrl,
+      );
       return { success: true, data: result };
     } catch (error) {
       return {
         success: false,
-        message: error.response?.data?.detail || 'Failed to post tweet',
+        message:
+          error.response?.data?.detail ||
+          error.message ||
+          'Failed to post tweet',
       };
     }
   }
