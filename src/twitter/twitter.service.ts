@@ -5,18 +5,22 @@ import * as OAuth from 'oauth-1.0a';
 import * as crypto from 'crypto';
 import { FormData } from 'formdata-node';
 import { Blob } from 'buffer';
+import axios from 'axios';
 
 @Injectable()
 export class TwitterService {
+  private requestToken?: string;
+  private requestTokenSecret?: string;
+
   private readonly consumerKey =
     process.env.TWITTER_CONSUMER_KEY || 'zowI2CkUx5O6VL7E2SYc13uU6';
   private readonly consumerSecret =
     process.env.TWITTER_CONSUMER_SECRET ||
     'UCFaJRClYtiLc1YYuzcZq95w9i7c9SiVj2qaPvj2xx7nA0Om8T';
-  private readonly accessToken =
+  private accessToken =
     process.env.TWITTER_ACCESS_TOKEN ||
     '1589719224578088961-jZ2kX5wbEzQdiAPvddj6P0m4D1JxYQ';
-  private readonly accessTokenSecret =
+  private accessTokenSecret =
     process.env.TWITTER_ACCESS_TOKEN_SECRET ||
     'MsETHImw0bC3h7WKrsftxzb2h7XqhNSXWmEa46IXeUjDl';
 
@@ -76,7 +80,6 @@ export class TwitterService {
       );
 
       const mediaId = initResponse.data.media_id_string;
-      console.log('Media initialization successful. Media ID:', mediaId);
 
       const chunkSize = 5 * 1024 * 1024;
       let segmentIndex = 0;
@@ -170,6 +173,7 @@ export class TwitterService {
       const headers = await this.getAuthHeader(endpointURL);
       let mediaId;
 
+      console.log(headers);
       if (videoUrl) {
         mediaId = await this.uploadMedia(videoUrl);
       }
@@ -203,5 +207,77 @@ export class TwitterService {
       });
       throw new Error(`Tweet post failed: ${error.message}`);
     }
+  }
+  async getRequestToken() {
+    const requestTokenURL = 'https://api.x.com/oauth/request_token';
+
+    const authHeader = this.oauth.toHeader(
+      this.oauth.authorize({
+        url: requestTokenURL,
+        method: 'POST',
+        data: { oauth_callback: 'http://localhost:5173/user/twitter-callback' },
+      }),
+    );
+
+    const response = await firstValueFrom(
+      this.httpService.post(
+        requestTokenURL,
+        {},
+        {
+          headers: {
+            Authorization: authHeader['Authorization'],
+          },
+        },
+      ),
+    );
+
+    const params = new URLSearchParams(response.data);
+    this.requestToken = params.get('oauth_token') ?? undefined;
+    this.requestTokenSecret = params.get('oauth_token_secret') ?? undefined;
+    return {
+      url: `https://api.twitter.com/oauth/authenticate?oauth_token=${this.requestToken}`,
+    };
+  }
+  async getAccessToken(
+    oauthToken: string,
+    oauthVerifier: string,
+  ): Promise<{
+    oauth_token: string;
+    oauth_token_secret: string;
+    user_id: string;
+    screen_name: string;
+  }> {
+    const accessTokenURL = 'https://api.twitter.com/oauth/access_token';
+
+    const authHeader = this.oauth.toHeader(
+      this.oauth.authorize({
+        url: accessTokenURL,
+        method: 'POST',
+        data: { oauth_token: oauthToken, oauth_verifier: oauthVerifier },
+      }),
+    );
+
+    const response = await firstValueFrom(
+      this.httpService.post(
+        accessTokenURL,
+        {},
+        {
+          headers: {
+            Authorization: authHeader['Authorization'],
+          },
+        },
+      ),
+    );
+
+    const params = new URLSearchParams(response.data);
+    this.accessToken = params.get('oauth_token') ?? '';
+    this.accessTokenSecret = params.get('oauth_token_secret') ?? '';
+
+    return {
+      oauth_token: this.accessToken,
+      oauth_token_secret: this.accessTokenSecret,
+      user_id: params.get('user_id') ?? '',
+      screen_name: params.get('screen_name') ?? '',
+    };
   }
 }
