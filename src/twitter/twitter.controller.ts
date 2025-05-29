@@ -1,5 +1,5 @@
 // twitter/twitter.controller.ts
-import { Controller, Post, Body, Get, Redirect, Query } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { TwitterService } from './twitter.service';
 
 @Controller('twitter')
@@ -56,5 +56,10 @@ export class TwitterController {
       success: true,
       data: tokenData,
     };
+  }
+
+  @Get('public-metrics/:userId')
+  async getPublicMetrics(@Param('userId') userId: string) {
+    return this.twitterService.getPublicMetrics(userId);
   }
 }

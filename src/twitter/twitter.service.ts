@@ -280,4 +280,36 @@ export class TwitterService {
       screen_name: params.get('screen_name') ?? '',
     };
   }
+
+  async getPublicMetrics(userId: string) {
+    try {
+      const url = `https://api.twitter.com/2/users/${userId}?user.fields=public_metrics`;
+
+      const headers = await this.getAuthHeader(url, 'GET');
+
+      const response = await firstValueFrom(
+        this.httpService.get(url, {
+          headers: {
+            ...headers,
+            'user-agent': 'v2TwitterAnalyticsJS',
+            'Content-Type': 'application/json',
+          },
+        }),
+      );
+
+      return { public_metrics: response.data };
+    } catch (error) {
+      console.error('Error fetching public_metrics:', {
+        message: error.message,
+        response: error.response?.data,
+        stack: error.stack,
+      });
+      return {
+        public_metrics: {
+          error: error.message,
+          details: error.response?.data,
+        },
+      };
+    }
+  }
 }
