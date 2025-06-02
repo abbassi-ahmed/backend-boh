@@ -5,7 +5,6 @@ import * as OAuth from 'oauth-1.0a';
 import * as crypto from 'crypto';
 import { FormData } from 'formdata-node';
 import { Blob } from 'buffer';
-import axios from 'axios';
 
 @Injectable()
 export class TwitterService {
