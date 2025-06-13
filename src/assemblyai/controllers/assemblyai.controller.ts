@@ -8,6 +8,7 @@ import {
   HttpException,
   HttpStatus,
   Delete,
+  Put,
 } from '@nestjs/common';
 import { AssemblyService } from '../services/assemblyai.service';
 
@@ -48,5 +49,19 @@ export class AssemblyController {
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     return this.assemblyService.remove(id);
+  }
+  @Put(':id/:platform')
+  async updatePlatformData(
+    @Param('id') id: number,
+    @Param('platform') platform: string,
+    @Body() updateData: { title: string; description: string; tags: string[] },
+  ) {
+    return this.assemblyService.update(
+      id,
+      platform,
+      updateData.title,
+      updateData.description,
+      updateData.tags,
+    );
   }
 }

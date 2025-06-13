@@ -295,7 +295,9 @@ export class AssemblyService {
   }
 
   async findAll(): Promise<Assembly[]> {
-    return this.assemblyRepository.find();
+    return this.assemblyRepository.find({
+      order: { createdAt: 'DESC' },
+    });
   }
 
   async findOne(id: number): Promise<Assembly> {
@@ -308,5 +310,41 @@ export class AssemblyService {
 
   async remove(id: string): Promise<void> {
     await this.assemblyRepository.delete(id);
+  }
+
+  async update(
+    id: number,
+    platform: string,
+    title: string,
+    description: string,
+    tags: string[],
+  ) {
+    const assembly = await this.assemblyRepository.findOne({ where: { id } });
+    if (!assembly) {
+      throw new Error(`Assembly with id ${id} not found`);
+    }
+
+    const validPlatforms = ['youtube', 'facebook', 'instagram', 'twitter'];
+    if (!validPlatforms.includes(platform)) {
+      throw new Error(`Invalid platform: ${platform}`);
+    }
+
+    assembly[platform] = {
+      ...assembly[platform],
+      title,
+      description,
+      tags,
+    };
+
+    try {
+      await this.assemblyRepository.save(assembly);
+      return {
+        success: true,
+        message: `${platform} data updated successfully`,
+        data: assembly[platform],
+      };
+    } catch (error) {
+      throw new Error(`Failed to update ${platform} data: ${error.message}`);
+    }
   }
 }
